@@ -3,7 +3,6 @@ package co.projectlittle.strawberry;
 import android.Manifest;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -12,6 +11,10 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.google.android.youtube.player.YouTubeBaseActivity;
+import com.google.android.youtube.player.YouTubeInitializationResult;
+import com.google.android.youtube.player.YouTubePlayer;
+import com.google.android.youtube.player.YouTubePlayerView;
 import com.opentok.android.BaseVideoRenderer;
 import com.opentok.android.OpentokError;
 import com.opentok.android.Publisher;
@@ -28,14 +31,17 @@ import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.AppSettingsDialog;
 import pub.devrel.easypermissions.EasyPermissions;
 
-public class ChatActivity extends AppCompatActivity
+public class ChatActivity extends YouTubeBaseActivity
         implements EasyPermissions.PermissionCallbacks,
         Publisher.PublisherListener,
-        Session.SessionListener {
+        Session.SessionListener,
+        YouTubePlayer.OnInitializedListener {
 
     private static final String TAG = ChatActivity.class.getSimpleName();
     private static final int RC_SETTINGS_SCREEN_PERM = 123;
     private static final int RC_VIDEO_APP_PERM = 124;
+    private static final String YOUTUBE_VIDEO_URL = "https://www.youtube.com/watch?v=aEuNBk1b5OE";
+    private static final String VIDEO_ID = "aEuNBk1b5OE";
 
     private Session mSession;
     private Publisher mPublisher;
@@ -44,6 +50,7 @@ public class ChatActivity extends AppCompatActivity
     private HashMap<Stream, Subscriber> mSubscriberStreams = new HashMap<>();
 
     private RelativeLayout mPublisherViewContainer;
+    private YouTubePlayerView mYouTubeThumbnail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +58,8 @@ public class ChatActivity extends AppCompatActivity
         setContentView(R.layout.activity_chat);
 
         mPublisherViewContainer = (RelativeLayout) findViewById(R.id.publisherview);
+        mYouTubeThumbnail = (YouTubePlayerView) findViewById(R.id.youtube_thumbnail);
+        mYouTubeThumbnail.initialize(getString(R.string.gcm_geo_key), this);
 
         final Button swapCamera = (Button) findViewById(R.id.swapCamera);
         swapCamera.setOnClickListener(new View.OnClickListener() {
@@ -190,6 +199,14 @@ public class ChatActivity extends AppCompatActivity
         mPublisherViewContainer.addView(mPublisher.getView());
 
         mSession.publish(mPublisher);
+
+//        String youTubeId = YouTubeThumbnail.getIdFromUrl(YOUTUBE_VIDEO_URL);
+//        if (youTubeId != null) {
+//            mYouTubeThumbnail.loadVideo(YOUTUBE_VIDEO_URL);
+//            mYouTubeThumbnail.setVisibility(View.VISIBLE);
+//        } else {
+//            mYouTubeThumbnail.setVisibility(View.GONE);
+//        }
     }
 
     @Override
@@ -298,5 +315,17 @@ public class ChatActivity extends AppCompatActivity
             mPublisher = null;
         }
         mSession.disconnect();
+    }
+
+    @Override
+    public void onInitializationSuccess(YouTubePlayer.Provider provider,
+            YouTubePlayer youTubePlayer, boolean b) {
+        youTubePlayer.loadVideo(VIDEO_ID);
+    }
+
+    @Override
+    public void onInitializationFailure(YouTubePlayer.Provider provider,
+            YouTubeInitializationResult youTubeInitializationResult) {
+
     }
 }
